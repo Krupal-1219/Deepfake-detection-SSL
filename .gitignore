@@ -1,0 +1,45 @@
+# Datasets — never commit
+data/
+extracted_frames/
+dfdc_sample_data/
+ff++/
+*.mp4
+*.avi
+
+# Model checkpoints — too large
+checkpoints/
+checkpoints_v*/
+phase1_output/
+*.pt
+*.pth
+
+# Generated outputs — except final results
+heatmaps/
+*.npy
+pr_curve.npy
+
+# KEEP heatmaps_v5/ — final results showcase
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+nohup.out
