@@ -28,6 +28,31 @@ A two-phase deepfake detection pipeline that reduces dependency on labelled fake
 
 ---
 
+## Problem Statement
+
+Deepfakes — synthetically generated or manipulated face videos and images — pose serious risks to digital trust, enabling misinformation, identity fraud, and reputational harm. Modern deepfake generation methods (GANs, diffusion-based face swapping, reenactment, and neural rendering) are improving rapidly, making artifacts harder to detect.
+
+While supervised deepfake detectors achieve strong performance on known datasets, they often fail to generalize to:
+- **(i)** unseen manipulation methods,
+- **(ii)** new camera/compression pipelines (social media),
+- **(iii)** different lighting/pose demographics, and
+- **(iv)** low-quality, heavily compressed videos.
+
+Additionally, collecting and labeling large-scale deepfake datasets for every new manipulation type is costly and quickly becomes outdated.
+
+This project addresses the challenge of building a **generalizable deepfake detection system with reduced dependency on labeled deepfake data**. The key idea is to leverage self-supervised learning (SSL) on large-scale unlabeled real videos/images to learn manipulation-invariant but forensic-sensitive representations. By learning robust spatio-temporal and frequency-domain features through SSL pretext tasks (e.g., masked modeling, contrastive learning, temporal consistency), the detector can better identify subtle inconsistencies in face dynamics, texture, and compression — improving performance on unseen deepfake types and distribution shifts.
+
+---
+
+## Objectives
+
+1. **Learn strong forensic representations** using SSL on unlabeled real face videos/images.
+2. **Improve cross-dataset generalization** for deepfake detection (train on one dataset, test on another).
+3. **Detect deepfakes across diverse conditions:** compression, low resolution, occlusion, motion blur, and varied demographics.
+4. **Provide localization cues** (frame-level or region-level heatmaps) indicating manipulated regions.
+
+---
+
 ## Architecture
 
 ```
