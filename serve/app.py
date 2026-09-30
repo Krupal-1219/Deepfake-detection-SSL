@@ -29,7 +29,7 @@ MAX_BYTES = 10 * 1024 * 1024
 RATE_LIMIT = int(os.environ.get("RATE_LIMIT_PER_MIN", 12))
 ORIGINS = os.environ.get(
     "ALLOWED_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,"
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://localhost:4173,"
     "https://portfolio-gaurav-girish-rathod.vercel.app").split(",")
 MODEL_CARD = {
     "name": "DINOv2 + SRM + FGW deepfake detector",
@@ -64,8 +64,10 @@ async def lifespan(_app):
 
 
 app = FastAPI(title="Deepfake forensics API", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=ORIGINS, allow_methods=["GET", "POST"],
-                   allow_headers=["*"])
+# Any Vercel deployment of the Seam frontend (production and preview URLs) may call the API.
+ORIGIN_REGEX = os.environ.get("ALLOWED_ORIGIN_REGEX", r"https://[a-z0-9-]+\.vercel\.app")
+app.add_middleware(CORSMiddleware, allow_origins=ORIGINS, allow_origin_regex=ORIGIN_REGEX,
+                   allow_methods=["GET", "POST"], allow_headers=["*"])
 
 
 def _rate_limit(ip: str):
