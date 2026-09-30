@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# 1. Set your Kaggle API Token (bypasses the need for kaggle.json)
-export KAGGLE_API_TOKEN=KGAT_c704c4e24751ebc6242116f9518973a2
+# 1. Kaggle API token: set it in your shell first, never commit it.
+#    export KAGGLE_API_TOKEN=...
+: "${KAGGLE_API_TOKEN:?Set KAGGLE_API_TOKEN before running this script}"
 
 # 2. Install required tools quietly
 echo "Installing libraries..."
