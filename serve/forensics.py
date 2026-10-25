@@ -106,7 +106,10 @@ def analyze_file(data: bytes, filename: str, original: Image.Image, upright: Ima
 
     haystack = " ".join([exif.get("Software", ""), creator_tool.group(1) if creator_tool else "",
                          " ".join(f"{k} {v}" for k, v in text_chunks.items()), xmp]).lower()
-    ai = sorted({label for key, label in AI_MARKERS.items() if key in haystack})
+    # Whole-word matches only: plain substrings flagged ordinary fields such as
+    # "ImageNumber" (contains "imagen") as AI generators.
+    ai = sorted({label for key, label in AI_MARKERS.items()
+                 if re.search(rf"(?<![a-z0-9]){re.escape(key)}(?![a-z0-9])", haystack)})
     if "parameters" in text_chunks and re.search(r"steps:\s*\d+", text_chunks["parameters"], re.I):
         ai.append("Diffusion generation parameters in PNG text")
     editors = sorted({e.title() for e in EDITORS if e in haystack})

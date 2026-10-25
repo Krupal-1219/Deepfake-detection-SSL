@@ -12,12 +12,13 @@ from collections import defaultdict, deque
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
+import numpy as np
 import torch
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 
-from .aigen import AIGenDetector
+from .aigen import CALIBRATION as AIGEN_CALIBRATION, AIGenDetector
 from .analyze import analyze_face, band
 from .forensics import analyze_file
 from .model import load_detector
@@ -112,7 +113,8 @@ def _run(data: bytes, filename: str):
         warnings.append("No face was detected, so the face close-up checks were skipped. "
                         "The whole-photo scan below still covers the entire image.")
     whole = analyze_whole(state["model"], upright)
-    ai_p = state["aigen"].score(upright)
+    ai_raw = state["aigen"].raw_score(upright)
+    ai_p = float(np.interp(ai_raw, *AIGEN_CALIBRATION))
     t_model = time.perf_counter()
 
     file_report = analyze_file(data, filename, original, upright)
@@ -126,13 +128,15 @@ def _run(data: bytes, filename: str):
         warnings.append(f"This image is small ({upright.width} × {upright.height}). Results are more reliable "
                         "on the original, full-resolution file.")
 
-    # Headline: the strongest of the independent signals.
-    signals = [{"id": "ai_generated", "label": "AI-generated or AI-edited image", "probability": round(ai_p, 4)}]
+    # Headline: the strongest of the checks that are reliable on their own. The whole-frame
+    # scan runs the face model on non-face regions (walls, sky), so it stays in the report as a
+    # map but does not vote; on plain backgrounds it scored real photos up to 70%.
+    signals = [{"id": "ai_generated", "label": "AI-generated or AI-edited image",
+                "probability": round(ai_p, 4), "raw": round(ai_raw, 4)}]
     if results:
         top = max(results, key=lambda r: r["probability"])
         signals.append({"id": "face_swap", "label": f"Face swap or reenactment (face {top['id'] + 1})",
                         "probability": top["probability"]})
-    signals.append({"id": "whole_frame", "label": "Whole-frame scan", "probability": whole["probability"]})
     if file_report["ai_markers"]:
         signals.append({"id": "metadata", "label": "Generator named in file metadata", "probability": 0.99})
     lead = max(signals, key=lambda s: s["probability"])
